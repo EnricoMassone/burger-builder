@@ -8,8 +8,6 @@ import axios from "../../axios-orders";
 import Spinner from "../../components/UI/Spinner";
 import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
 
-//const priceLookup = new Map([["salad", 1], ["bacon", 1], ["cheese", 1], ["meat", 1]]);
-
 class BurgerBuilder extends Component {
 
   state = {
@@ -31,17 +29,23 @@ class BurgerBuilder extends Component {
       const response = await axios.get("/configuration.json");
       const { basePrice, ingredientsPrice } = response.data;
 
-      const array = Object
+      const ingredientPriceTuples = Object
         .keys(ingredientsPrice)
         .map(ingredient => {
           const price = ingredientsPrice[ingredient];
           return [ingredient, price];
         });
+      const priceLookup = new Map(ingredientPriceTuples);
 
-      console.log(basePrice, array);
+      const configuration = {
+        basePrice,
+        priceLookup
+      };
 
-      // TODO set both the configuration and base price state...
-
+      this.setState({
+        configuration,
+        price: basePrice
+      });
     } catch (error) {
       console.log(error);
     }
