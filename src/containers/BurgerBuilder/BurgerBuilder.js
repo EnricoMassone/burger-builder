@@ -47,6 +47,12 @@ class BurgerBuilder extends Component {
     }
   }
 
+  isStateInitialized = () => {
+    const isPriceInitialized = this.state.price !== null;
+    const isConfigurationInitialized = this.state.configuration !== null;
+    return isPriceInitialized && isConfigurationInitialized;
+  };
+
   onIngredientAdded = event => {
     const ingredientType = event.target.dataset.ingredientType;
     this.addIngredient(ingredientType);
