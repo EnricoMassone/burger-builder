@@ -21,7 +21,8 @@ class BurgerBuilder extends Component {
     isPurchasable: false,
     isPurchaseMode: false,
     isPostingOrderToServer: false,
-    configuration: null
+    configuration: null,
+    errorDuringStateInitialization: false
   };
 
   async componentDidMount() {
@@ -48,6 +49,10 @@ class BurgerBuilder extends Component {
       });
     } catch (error) {
       console.log(error);
+
+      this.setState({
+        errorDuringStateInitialization: true
+      });
     }
   }
 
@@ -218,7 +223,13 @@ class BurgerBuilder extends Component {
   };
 
   getMainContent = () => {
-    if (this.isStateInitialized()) {
+    if (this.state.errorDuringStateInitialization) {
+      return (
+        <p>
+          An error occurred while fetching configuration. Reload the page to try again.
+        </p>
+      );
+    } else if (this.isStateInitialized()) {
       return (
         <Aux>
           <BurgerPreview ingredients={this.state.ingredients} />
