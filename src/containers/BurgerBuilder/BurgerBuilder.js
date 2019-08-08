@@ -142,7 +142,10 @@ class BurgerBuilder extends Component {
     } catch (error) {
       console.log(error);
     } finally {
-      this.setState({ isPostingOrderToServer: false });
+      this.setState({
+        isPostingOrderToServer: false,
+        isPurchaseMode: false
+      });
     }
   };
 
