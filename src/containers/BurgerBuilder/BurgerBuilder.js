@@ -4,10 +4,11 @@ import BurgerPreview from "../../components/Burger/BurgerPreview";
 import BuildControls from "../../components/Burger/BuildControls";
 import Modal from "../../components/UI/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary";
-
-const basePrice = 4;
-
-const priceLookup = new Map([["salad", 1], ["bacon", 1], ["cheese", 1], ["meat", 1]]);
+import axios from "../../axios-orders";
+import Spinner from "../../components/UI/Spinner";
+import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
+import styles from "./BurgerBuilder.module.css";
+import warningImage from "../../assets/images/warning.jpg"
 
 class BurgerBuilder extends Component {
 
@@ -18,9 +19,49 @@ class BurgerBuilder extends Component {
       cheese: 0,
       meat: 0
     },
-    price: basePrice,
+    price: null,
     isPurchasable: false,
-    isPurchaseMode: false
+    isPurchaseMode: false,
+    isPostingOrderToServer: false,
+    configuration: null,
+    errorDuringStateInitialization: false
+  };
+
+  async componentDidMount() {
+    try {
+      const response = await axios.get("/configuration.json");
+      const { basePrice, ingredientsPrice } = response.data;
+
+      const ingredientPriceTuples = Object
+        .keys(ingredientsPrice)
+        .map(ingredient => {
+          const price = ingredientsPrice[ingredient];
+          return [ingredient, price];
+        });
+      const priceLookup = new Map(ingredientPriceTuples);
+
+      const configuration = {
+        basePrice,
+        priceLookup
+      };
+
+      this.setState({
+        configuration,
+        price: basePrice
+      });
+    } catch (error) {
+      console.log(error);
+
+      this.setState({
+        errorDuringStateInitialization: true
+      });
+    }
+  }
+
+  isStateInitialized = () => {
+    const isPriceInitialized = this.state.price !== null;
+    const isConfigurationInitialized = this.state.configuration !== null;
+    return isPriceInitialized && isConfigurationInitialized;
   };
 
   onIngredientAdded = event => {
@@ -85,7 +126,7 @@ class BurgerBuilder extends Component {
 
   computePrice = ingredients => {
     const price = Object.keys(ingredients).reduce((memo, item) => {
-      const ingredientPrice = priceLookup.get(item);
+      const ingredientPrice = this.state.configuration.priceLookup.get(item);
       if (ingredientPrice === undefined) {
         throw new Error(`Price for ingredient ${item} is not available`);
       }
@@ -93,7 +134,7 @@ class BurgerBuilder extends Component {
       const ingredientQuantity = ingredients[item];
 
       return memo + (ingredientPrice * ingredientQuantity);
-    }, basePrice);
+    }, this.state.configuration.basePrice);
     return price;
   };
 
@@ -112,7 +153,7 @@ class BurgerBuilder extends Component {
 
     const { ingredients } = this.state;
 
-    for (const ingredientType of priceLookup.keys()) {
+    for (const ingredientType of this.state.configuration.priceLookup.keys()) {
       const ingredientQuantity = ingredients[ingredientType];
       const canRemoveIngredient = (ingredientQuantity !== undefined) && ingredientQuantity > 0;
       const isIngredientRemovalDisabled = !canRemoveIngredient;
@@ -130,37 +171,103 @@ class BurgerBuilder extends Component {
     this.setState({ isPurchaseMode: false });
   }
 
-  onBurgerPurchasingConfirmed = () => {
-    alert("Thank you for purchasing our burger!");
+  onBurgerPurchasingConfirmed = async () => {
+    this.setState({ isPostingOrderToServer: true });
+
+    try {
+      const order = this.buildOrderObject();
+      await axios.post("/orders.json", order);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      this.setState({
+        isPostingOrderToServer: false,
+        isPurchaseMode: false
+      });
+    }
+  };
+
+  buildOrderObject = () => {
+    const customer = {
+      name: "Mario Rossi",
+      email: "mario.rossi@example.com",
+      address: {
+        city: "Torino",
+        zipCode: "12345",
+        street: "Test street 123"
+      }
+    };
+
+    const ingredients = { ...this.state.ingredients };
+
+    return {
+      customer,
+      ingredients,
+      deliveryMethod: "fast-delivery",
+      price: this.state.price
+    };
+  };
+
+  getModalContent = () => {
+    if (this.state.isPostingOrderToServer) {
+      return <Spinner />;
+    } else if (this.isStateInitialized()) {
+      return (
+        <OrderSummary
+          onOrderCancelled={this.onBurgerPurchasingCancelled}
+          onOrderConfirmed={this.onBurgerPurchasingConfirmed}
+          ingredients={this.state.ingredients}
+          price={this.state.price} />
+      );
+    } else {
+      return null;
+    }
+  };
+
+  getMainContent = () => {
+    if (this.state.errorDuringStateInitialization) {
+      return (
+        <div className={styles.WarningContainer}>
+          <div className={styles.Warning}>
+            <img src={warningImage} alt="warning" className={styles.Responsive} />
+            <p>
+              An error occurred while fetching configuration. Reload the page to try again.
+            </p>
+          </div>
+        </div>
+      );
+    } else if (this.isStateInitialized()) {
+      return (
+        <Aux>
+          <BurgerPreview ingredients={this.state.ingredients} />
+
+          <BuildControls
+            disableIngredientRemovalMap={this.buildDisableIngredientRemovalMap()}
+            onIngredientAdded={this.onIngredientAdded}
+            onIngredientRemoved={this.onIngredientRemoved}
+            price={this.state.price}
+            canOrder={this.state.isPurchasable}
+            onOrderNowClicked={this.onBurgerOrdered} />
+        </Aux>
+      );
+    } else {
+      return <Spinner />;
+    }
   };
 
   render() {
-    const disableIngredientRemovalMap = this.buildDisableIngredientRemovalMap();
-
     return (
       <Aux>
         <Modal
           onModalClosed={this.onBurgerPurchasingCancelled}
           show={this.state.isPurchaseMode}>
-          <OrderSummary
-            onOrderCancelled={this.onBurgerPurchasingCancelled}
-            onOrderConfirmed={this.onBurgerPurchasingConfirmed}
-            ingredients={this.state.ingredients}
-            price={this.state.price} />
+          {this.getModalContent()}
         </Modal>
 
-        <BurgerPreview ingredients={this.state.ingredients} />
-
-        <BuildControls
-          disableIngredientRemovalMap={disableIngredientRemovalMap}
-          onIngredientAdded={this.onIngredientAdded}
-          onIngredientRemoved={this.onIngredientRemoved}
-          price={this.state.price}
-          canOrder={this.state.isPurchasable}
-          onOrderNowClicked={this.onBurgerOrdered} />
+        {this.getMainContent()}
       </Aux>
     );
   }
 }
 
-export default BurgerBuilder;
+export default withHttpErrorHandling(BurgerBuilder, axios);
