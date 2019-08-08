@@ -11,7 +11,7 @@ const withHttpErrorHandling = (WrappedComponent, axios) => (
         httpError: null
       };
 
-      axios.interceptors.request.use(
+      this.requestInterceptor = axios.interceptors.request.use(
         request => {
           this.setState({
             httpError: null
@@ -27,7 +27,7 @@ const withHttpErrorHandling = (WrappedComponent, axios) => (
         }
       );
 
-      axios.interceptors.response.use(
+      this.responseInterceptor = axios.interceptors.response.use(
         response => response,
         error => {
           this.setState({
@@ -37,6 +37,11 @@ const withHttpErrorHandling = (WrappedComponent, axios) => (
           return Promise.reject(error);
         }
       );
+    }
+
+    componentWillUnmount() {
+      axios.interceptors.request.eject(this.requestInterceptor);
+      axios.interceptors.response.eject(this.responseInterceptor);
     }
 
     onErrorModalClosed = () => {
