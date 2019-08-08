@@ -8,7 +8,7 @@ import axios from "../../axios-orders";
 import Spinner from "../../components/UI/Spinner";
 import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
 
-const priceLookup = new Map([["salad", 1], ["bacon", 1], ["cheese", 1], ["meat", 1]]);
+//const priceLookup = new Map([["salad", 1], ["bacon", 1], ["cheese", 1], ["meat", 1]]);
 
 class BurgerBuilder extends Component {
 
@@ -109,7 +109,7 @@ class BurgerBuilder extends Component {
 
   computePrice = ingredients => {
     const price = Object.keys(ingredients).reduce((memo, item) => {
-      const ingredientPrice = priceLookup.get(item);
+      const ingredientPrice = this.state.configuration.priceLookup.get(item);
       if (ingredientPrice === undefined) {
         throw new Error(`Price for ingredient ${item} is not available`);
       }
@@ -136,7 +136,7 @@ class BurgerBuilder extends Component {
 
     const { ingredients } = this.state;
 
-    for (const ingredientType of priceLookup.keys()) {
+    for (const ingredientType of this.state.configuration.priceLookup.keys()) {
       const ingredientQuantity = ingredients[ingredientType];
       const canRemoveIngredient = (ingredientQuantity !== undefined) && ingredientQuantity > 0;
       const isIngredientRemovalDisabled = !canRemoveIngredient;
