@@ -7,6 +7,8 @@ import OrderSummary from "../../components/Burger/OrderSummary";
 import axios from "../../axios-orders";
 import Spinner from "../../components/UI/Spinner";
 import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
+import styles from "./BurgerBuilder.module.css";
+import warningImage from "../../assets/images/warning.jpg"
 
 class BurgerBuilder extends Component {
 
@@ -27,7 +29,7 @@ class BurgerBuilder extends Component {
 
   async componentDidMount() {
     try {
-      const response = await axios.get("/configuration.json");
+      const response = await axios.get("/configuration");
       const { basePrice, ingredientsPrice } = response.data;
 
       const ingredientPriceTuples = Object
@@ -225,9 +227,14 @@ class BurgerBuilder extends Component {
   getMainContent = () => {
     if (this.state.errorDuringStateInitialization) {
       return (
-        <p>
-          An error occurred while fetching configuration. Reload the page to try again.
-        </p>
+        <div className={styles.WarningContainer}>
+          <div className={styles.Warning}>
+            <img src={warningImage} alt="warning" className={styles.Responsive} />
+            <p>
+              An error occurred while fetching configuration. Reload the page to try again.
+            </p>
+          </div>
+        </div>
       );
     } else if (this.isStateInitialized()) {
       return (
