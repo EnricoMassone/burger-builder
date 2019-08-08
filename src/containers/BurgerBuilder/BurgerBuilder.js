@@ -5,6 +5,7 @@ import BuildControls from "../../components/Burger/BuildControls";
 import Modal from "../../components/UI/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary";
 import axios from "../../axios-orders";
+import Spinner from "../../components/UI/Spinner";
 
 const basePrice = 4;
 
@@ -21,7 +22,8 @@ class BurgerBuilder extends Component {
     },
     price: basePrice,
     isPurchasable: false,
-    isPurchaseMode: false
+    isPurchaseMode: false,
+    isPostingOrderToServer: false
   };
 
   onIngredientAdded = event => {
@@ -132,12 +134,15 @@ class BurgerBuilder extends Component {
   }
 
   onBurgerPurchasingConfirmed = async () => {
+    this.setState({ isPostingOrderToServer: true });
+
     try {
       const order = this.buildOrderObject();
-      const response = await axios.post("/orders.json", order);
-      console.log(response);
+      await axios.post("/orders.json", order);
     } catch (error) {
       console.log(error);
+    } finally {
+      this.setState({ isPostingOrderToServer: false });
     }
   };
 
@@ -165,16 +170,22 @@ class BurgerBuilder extends Component {
   render() {
     const disableIngredientRemovalMap = this.buildDisableIngredientRemovalMap();
 
+    const modalContent = this.state.isPostingOrderToServer ?
+      <Spinner /> :
+      (
+        <OrderSummary
+          onOrderCancelled={this.onBurgerPurchasingCancelled}
+          onOrderConfirmed={this.onBurgerPurchasingConfirmed}
+          ingredients={this.state.ingredients}
+          price={this.state.price} />
+      );
+
     return (
       <Aux>
         <Modal
           onModalClosed={this.onBurgerPurchasingCancelled}
           show={this.state.isPurchaseMode}>
-          <OrderSummary
-            onOrderCancelled={this.onBurgerPurchasingCancelled}
-            onOrderConfirmed={this.onBurgerPurchasingConfirmed}
-            ingredients={this.state.ingredients}
-            price={this.state.price} />
+          {modalContent}
         </Modal>
 
         <BurgerPreview ingredients={this.state.ingredients} />
