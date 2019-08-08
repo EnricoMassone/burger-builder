@@ -201,6 +201,22 @@ class BurgerBuilder extends Component {
     };
   };
 
+  getModalContent = () => {
+    if (this.state.isPostingOrderToServer) {
+      return <Spinner />;
+    } else if (this.isStateInitialized()) {
+      return (
+        <OrderSummary
+          onOrderCancelled={this.onBurgerPurchasingCancelled}
+          onOrderConfirmed={this.onBurgerPurchasingConfirmed}
+          ingredients={this.state.ingredients}
+          price={this.state.price} />
+      );
+    } else {
+      return null;
+    }
+  };
+
   render() {
     const disableIngredientRemovalMap = this.buildDisableIngredientRemovalMap();
 
