@@ -218,30 +218,18 @@ class BurgerBuilder extends Component {
   };
 
   render() {
-    const disableIngredientRemovalMap = this.buildDisableIngredientRemovalMap();
-
-    const modalContent = this.state.isPostingOrderToServer ?
-      <Spinner /> :
-      (
-        <OrderSummary
-          onOrderCancelled={this.onBurgerPurchasingCancelled}
-          onOrderConfirmed={this.onBurgerPurchasingConfirmed}
-          ingredients={this.state.ingredients}
-          price={this.state.price} />
-      );
-
     return (
       <Aux>
         <Modal
           onModalClosed={this.onBurgerPurchasingCancelled}
           show={this.state.isPurchaseMode}>
-          {modalContent}
+          {this.getModalContent()}
         </Modal>
 
         <BurgerPreview ingredients={this.state.ingredients} />
 
         <BuildControls
-          disableIngredientRemovalMap={disableIngredientRemovalMap}
+          disableIngredientRemovalMap={this.buildDisableIngredientRemovalMap()}
           onIngredientAdded={this.onIngredientAdded}
           onIngredientRemoved={this.onIngredientRemoved}
           price={this.state.price}
