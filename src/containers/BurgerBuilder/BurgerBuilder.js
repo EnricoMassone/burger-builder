@@ -27,6 +27,25 @@ class BurgerBuilder extends Component {
     isPostingOrderToServer: false
   };
 
+  async componentDidMount() {
+    try {
+      const response = await axios.get("/configuration.json");
+      const { basePrice, ingredientsPrice } = response.data;
+
+      const array = Object
+        .keys(ingredientsPrice)
+        .map(ingredient => {
+          const price = ingredientsPrice[ingredient];
+          return [ingredient, price];
+        });
+
+      console.log(basePrice, array);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   onIngredientAdded = event => {
     const ingredientType = event.target.dataset.ingredientType;
     this.addIngredient(ingredientType);
