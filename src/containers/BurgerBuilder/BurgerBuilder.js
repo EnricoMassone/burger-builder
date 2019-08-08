@@ -29,7 +29,7 @@ class BurgerBuilder extends Component {
 
   async componentDidMount() {
     try {
-      const response = await axios.get("/configuration");
+      const response = await axios.get("/configuration.json");
       const { basePrice, ingredientsPrice } = response.data;
 
       const ingredientPriceTuples = Object
