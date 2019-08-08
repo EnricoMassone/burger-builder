@@ -8,8 +8,6 @@ import axios from "../../axios-orders";
 import Spinner from "../../components/UI/Spinner";
 import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
 
-const basePrice = 4;
-
 const priceLookup = new Map([["salad", 1], ["bacon", 1], ["cheese", 1], ["meat", 1]]);
 
 class BurgerBuilder extends Component {
@@ -21,10 +19,11 @@ class BurgerBuilder extends Component {
       cheese: 0,
       meat: 0
     },
-    price: basePrice,
+    price: null,
     isPurchasable: false,
     isPurchaseMode: false,
-    isPostingOrderToServer: false
+    isPostingOrderToServer: false,
+    configuration: null
   };
 
   async componentDidMount() {
@@ -40,6 +39,8 @@ class BurgerBuilder extends Component {
         });
 
       console.log(basePrice, array);
+
+      // TODO set both the configuration and base price state...
 
     } catch (error) {
       console.log(error);
@@ -116,7 +117,7 @@ class BurgerBuilder extends Component {
       const ingredientQuantity = ingredients[item];
 
       return memo + (ingredientPrice * ingredientQuantity);
-    }, basePrice);
+    }, this.state.configuration.basePrice);
     return price;
   };
 
