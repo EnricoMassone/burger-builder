@@ -217,6 +217,26 @@ class BurgerBuilder extends Component {
     }
   };
 
+  getMainContent = () => {
+    if (this.isStateInitialized()) {
+      return (
+        <Aux>
+          <BurgerPreview ingredients={this.state.ingredients} />
+
+          <BuildControls
+            disableIngredientRemovalMap={this.buildDisableIngredientRemovalMap()}
+            onIngredientAdded={this.onIngredientAdded}
+            onIngredientRemoved={this.onIngredientRemoved}
+            price={this.state.price}
+            canOrder={this.state.isPurchasable}
+            onOrderNowClicked={this.onBurgerOrdered} />
+        </Aux>
+      );
+    } else {
+      return <Spinner />;
+    }
+  };
+
   render() {
     return (
       <Aux>
@@ -226,15 +246,7 @@ class BurgerBuilder extends Component {
           {this.getModalContent()}
         </Modal>
 
-        <BurgerPreview ingredients={this.state.ingredients} />
-
-        <BuildControls
-          disableIngredientRemovalMap={this.buildDisableIngredientRemovalMap()}
-          onIngredientAdded={this.onIngredientAdded}
-          onIngredientRemoved={this.onIngredientRemoved}
-          price={this.state.price}
-          canOrder={this.state.isPurchasable}
-          onOrderNowClicked={this.onBurgerOrdered} />
+        {this.getMainContent()}
       </Aux>
     );
   }
