@@ -6,6 +6,7 @@ import Modal from "../../components/UI/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary";
 import axios from "../../axios-orders";
 import Spinner from "../../components/UI/Spinner";
+import withHttpErrorHandling from "../../hoc/withHttpErrorHandling";
 
 const basePrice = 4;
 
@@ -205,4 +206,4 @@ class BurgerBuilder extends Component {
   }
 }
 
-export default BurgerBuilder;
+export default withHttpErrorHandling(BurgerBuilder, axios);
